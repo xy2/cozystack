@@ -2340,9 +2340,12 @@
         "type": "datasource"
       },
       {
+        "allValue": "",
         "current": {
           "text": "All",
-          "value": "$__all"
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": "${datasource}",
         "definition": "",
@@ -2350,9 +2353,10 @@
         "multi": true,
         "name": "node",
         "options": [],
-        "query": "label_values(drbdreactor_up, node)",
+        "query": "label_values(linstor_volume_state,node)",
         "refresh": 2,
         "regex": "",
+        "sort": 1,
         "type": "query"
       }
     ]
@@ -2363,8 +2367,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Piraeus Datastore",
-  "uid": "cec1nrorks9oge",
+  "title": "Linstor Storage",
+  "uid": "cozy-linstor",
   "version": 0,
   "weekStart": ""
 }
