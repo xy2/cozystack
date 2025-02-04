@@ -18,6 +18,7 @@ ingress/namespace-detail
 db/cloudnativepg
 db/maria-db
 db/redis
+storage/linstor
 main/controller
 main/namespaces
 main/capacity-planning
