@@ -150,10 +150,9 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})-sum by(storage_pool)(linstor_storage_pool_capacity_free_bytes{storage_pool=~\"$storage_pool\"})",
+          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})",
           "instant": false,
-          "interval": "",
-          "legendFormat": "{{storage_pool}} used",
+          "legendFormat": "total",
           "range": true,
           "refId": "A"
         },
@@ -164,15 +163,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})",
-          "hide": false,
+          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})-sum by(storage_pool)(linstor_storage_pool_capacity_free_bytes{storage_pool=~\"$storage_pool\"})",
           "instant": false,
-          "legendFormat": "{{storage_pool}} total",
+          "legendFormat": "used",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Space usage in Storage Pool",
+      "title": "Space usage in Storage Pool / $storage_pool",
       "type": "timeseries"
     },
     {
