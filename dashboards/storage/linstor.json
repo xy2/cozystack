@@ -140,6 +140,8 @@
         }
       },
       "pluginVersion": "11.4.0",
+      "repeat": "storage_pool",
+      "repeatDirection": "v",
       "targets": [
         {
           "datasource": {
@@ -148,7 +150,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{})-sum by(storage_pool)(linstor_storage_pool_capacity_free_bytes{})",
+          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})-sum by(storage_pool)(linstor_storage_pool_capacity_free_bytes{storage_pool=~\"$storage_pool\"})",
           "instant": false,
           "interval": "",
           "legendFormat": "{{storage_pool}} used",
@@ -162,7 +164,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{})",
+          "expr": "sum by(storage_pool)(linstor_storage_pool_capacity_total_bytes{storage_pool=~\"$storage_pool\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "{{storage_pool}} total",
@@ -170,7 +172,7 @@
           "refId": "B"
         }
       ],
-      "title": "Space usage by Storage pool",
+      "title": "Space usage in Storage Pool",
       "type": "timeseries"
     },
     {
@@ -304,6 +306,51 @@
         "refresh": 1,
         "regex": "/^(?!.*telemetry)/",
         "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${ds_prometheus}"
+        },
+        "definition": "label_values(linstor_volume_state,node)",
+        "description": "Linstor Satellite node",
+        "includeAll": true,
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(linstor_volume_state,node)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${ds_prometheus}"
+        },
+        "definition": "label_values(linstor_storage_pool_error_count,storage_pool)",
+        "description": "Linstor storage pool",
+        "includeAll": true,
+        "label": "pool",
+        "multi": true,
+        "name": "storage_pool",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(linstor_storage_pool_error_count,storage_pool)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/^(?!.*DfltDisklessStorPool).*$/",
+        "sort": 1,
+        "type": "query"
       }
     ]
   },
