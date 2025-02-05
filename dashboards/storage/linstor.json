@@ -165,7 +165,9 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "text": "vm-shortterm"
+        },
         "name": "ds_prometheus",
         "options": [],
         "query": "prometheus",
