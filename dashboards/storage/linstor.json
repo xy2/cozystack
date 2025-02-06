@@ -37,7 +37,7 @@
       }
     ]
   },
-  "editable": true,
+  "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
@@ -174,12 +174,193 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds_prometheus}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#515d44",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 12,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "repeat": "storage_pool",
+      "repeatDirection": "v",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "count(linstor_volume_state{storage_pool=~\"$storage_pool\"} == -1) or vector(0)",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "legendFormat": "Unknown",
+          "range": true,
+          "refId": "Unknown",
+          "useBackend": false
+        },
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "count(linstor_volume_state{storage_pool=~\"$storage_pool\"} == 1) or vector(0)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "UpToDate",
+          "range": true,
+          "refId": "UpToDate",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          }
+        },
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "count(linstor_volume_state{storage_pool=~\"$storage_pool\"} >=2 <=4) or vector(0)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "Healthy",
+          "range": true,
+          "refId": "Healthy",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          }
+        },
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "(count(linstor_volume_state{storage_pool=~\"$storage_pool\"} >=5 <=6) + count(linstor_volume_state{storage_pool=~\"$storage_pool\"} == 90)) or vector(0)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "Failing",
+          "range": true,
+          "refId": "Failing",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          }
+        },
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "count(linstor_volume_state{storage_pool=~\"$storage_pool\"} >=7 <=9) or vector(0)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "Transitioning",
+          "range": true,
+          "refId": "Transitioning",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          }
+        }
+      ],
+      "title": "Volume health / $storage_pool",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 17
       },
       "id": 2,
       "panels": [],
@@ -250,7 +431,7 @@
         "h": 6,
         "w": 6,
         "x": 0,
-        "y": 10
+        "y": 18
       },
       "id": 3,
       "options": {
