@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo "I'm fake validator, reporting success every time because Talos already have NVIDIA drivers installed, and kernel modules are immutable."
+echo "I was called with COMPONENT='${COMPONENT}' on node '${NODE_NAME}'."
+set -x
+
+# NOTE: IS_HOST_DRIVER is somehow MIG-related
+cat >/run/nvidia/validations/driver-ready <<'EOF'
+IS_HOST_DRIVER=false
+NVIDIA_DRIVER_ROOT=/run/nvidia/driver
+DRIVER_ROOT_CTR_PATH=/driver-root
+#NVIDIA_DEV_ROOT=/run/nvidia/driver
+NVIDIA_DEV_ROOT=/
+DEV_ROOT_CTR_PATH=/driver-root
+EOF
+
+# Toolkit configures containerd, we did that beforehand
+touch /run/nvidia/validations/toolkit-ready
