@@ -1,0 +1,20 @@
+gpu-operator:
+  driver:
+    # disable driver loading, Talos has own
+    enabled: false
+    upgradePolicy:
+      # The NVIDIA driver version is fixed in Talos and cannot be upgraded
+      # Yes, this option must be disabled in addition to the whole driver section
+      autoUpgrade: false
+  toolkit:
+    # disable toolkit installation, Talos already has containerd configured with nvidia runtime, and persistentd is running
+    enabled: false
+    # Talos-specific path
+    installDir: /usr/local
+  validator:
+    # Validator could not be disabled, but we can craft a simple replacement
+    # This image is used as init container in several places
+    # TODO rename and move to the cozystack ghcr
+    image: fake-validator
+    repository: quay.io/squared/nvidia
+    version: "6"
