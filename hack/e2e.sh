@@ -19,7 +19,10 @@ fi
 
 set -x
 set -e
+export TALOSCONFIG=$PWD/talosconfig
+export KUBECONFIG=$PWD/kubeconfig
 
+if [ "$reset" = "true" ]; then
 kill `cat srv1/qemu.pid srv2/qemu.pid srv3/qemu.pid` || true
 
 ip link del cozy-br0 || true
@@ -117,7 +120,19 @@ machine:
     mirrors:
       docker.io:
         endpoints:
-        - https://mirror.gcr.io
+        - "https://dockerhub-mirror.psina.xyz"
+      quay.io:
+        endpoints:
+        - "https://quay-mirror.psina.xyz"
+      registry.k8s.io:
+        endpoints:
+        - "https://registry-k8s-mirror.psina.xyz"
+      ghcr.io:
+        endpoints:
+        - "https://ghcr-mirror.psina.xyz"
+      nvcr.io:
+        endpoints:
+        - "https://nvcr-mirror.psina.xyz"
   files:
   - content: |
       [plugins]
@@ -178,9 +193,8 @@ if [ ! -f secrets.yaml ]; then
   talosctl gen secrets
 fi
 
-rm -f controlplane.yaml worker.yaml talosconfig kubeconfig
+rm -f controlplane.yaml worker.yaml talosconfig "${KUBECONFIG}"
 talosctl gen config --with-secrets secrets.yaml cozystack https://192.168.123.10:6443 --config-patch=@patch.yaml --config-patch-control-plane @patch-controlplane.yaml
-export TALOSCONFIG=$PWD/talosconfig
 
 # Apply configuration
 talosctl apply -f controlplane.yaml -n 192.168.123.11 -e 192.168.123.11 -i
@@ -198,8 +212,7 @@ timeout 180 sh -c 'until timeout -s 9 2 talosctl etcd members -n 192.168.123.11,
 timeout 60 sh -c 'while talosctl etcd members -n 192.168.123.11,192.168.123.12,192.168.123.13 -e 192.168.123.10 2>&1 | grep "rpc error"; do sleep 1; done'
 
 rm -f kubeconfig
-talosctl kubeconfig kubeconfig -e 192.168.123.10 -n 192.168.123.10
-export KUBECONFIG=$PWD/kubeconfig
+talosctl kubeconfig "${KUBECONFIG}" -e 192.168.123.10 -n 192.168.123.10
 
 # Wait for kubernetes nodes appear
 timeout 60 sh -c 'until [ $(kubectl get node -o name | wc -l) = 3 ]; do sleep 1; done'
@@ -232,10 +245,6 @@ timeout 60 sh -c 'until kubectl get hr -A | grep cozy; do sleep 1; done'
 sleep 5
 
 kubectl get hr -A | awk 'NR>1 {print "kubectl wait --timeout=15m --for=condition=ready -n " $1 " hr/" $2 " &"} END{print "wait"}' | sh -x
-
-# Wait for Cluster-API providers
-timeout 30 sh -c 'until kubectl get deploy -n cozy-cluster-api capi-controller-manager capi-kamaji-controller-manager capi-kubeadm-bootstrap-controller-manager capi-operator-cluster-api-operator capk-controller-manager; do sleep 1; done'
-kubectl wait deploy --timeout=30s --for=condition=available -n cozy-cluster-api capi-controller-manager capi-kamaji-controller-manager capi-kubeadm-bootstrap-controller-manager capi-operator-cluster-api-operator capk-controller-manager
 
 # Wait for linstor controller
 kubectl wait deploy --timeout=5m --for=condition=available -n cozy-linstor linstor-controller
@@ -303,6 +312,9 @@ spec:
   avoidBuggyIPs: false
 EOT
 
+# if reset
+fi
+
 # Wait for cozystack-api
 kubectl wait --for=condition=Available apiservices v1alpha1.apps.cozystack.io --timeout=2m
 
@@ -313,6 +325,12 @@ kubectl patch -n tenant-root tenants.apps.cozystack.io root --type=merge -p '{"s
   "etcd": true,
   "isolated": true
 }}'
+
+# Wait for Cluster-API providers
+cluster_api_deployments="capi-controller-manager capi-kamaji-controller-manager capi-kubeadm-bootstrap-controller-manager capi-operator-cluster-api-operator capk-controller-manager"
+#cluster_api_deployments="capi-controller-manager capi-operator-cluster-api-operator"
+timeout 30 sh -c "until kubectl get deploy                  -n cozy-cluster-api $cluster_api_deployments; do sleep 1; done"
+kubectl wait deploy --timeout=30s --for=condition=available -n cozy-cluster-api $cluster_api_deployments
 
 # Wait for HelmRelease be created
 timeout 60 sh -c 'until kubectl get hr -n tenant-root etcd ingress monitoring tenant-root; do sleep 1; done'
