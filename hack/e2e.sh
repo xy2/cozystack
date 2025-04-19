@@ -21,8 +21,10 @@ set -x
 set -e
 export TALOSCONFIG=$PWD/talosconfig
 export KUBECONFIG=$PWD/kubeconfig
+export ROOT_DOMAIN="${ROOT_DOMAIN:-example.org}"
+export RESET_ENV="${RESET_ENV:-true}"
 
-if [ "$reset" = "true" ]; then
+if [ "${RESET_ENV}" = "true" ]; then
 kill `cat srv1/qemu.pid srv2/qemu.pid srv3/qemu.pid` || true
 
 ip link del cozy-br0 || true
@@ -100,7 +102,7 @@ sleep 5
 # Wait for VM to start up
 timeout 60 sh -c 'until nc -nzv 192.168.123.11 50000 && nc -nzv 192.168.123.12 50000 && nc -nzv 192.168.123.13 50000; do sleep 1; done'
 
-cat > patch.yaml <<\EOT
+cat > patch.yaml <<EOT
 machine:
   kubelet:
     nodeIP:
@@ -137,14 +139,14 @@ machine:
   - content: |
       [plugins]
         [plugins."io.containerd.grpc.v1.cri"]
-          device_ownership_from_security_context = true      
+          device_ownership_from_security_context = true
     path: /etc/cri/conf.d/20-customization.part
     op: create
 
 cluster:
   apiServer:
     extraArgs:
-      oidc-issuer-url: "https://keycloak.example.org/realms/cozy"
+      oidc-issuer-url: "https://keycloak.${ROOT_DOMAIN}/realms/cozy"
       oidc-client-id: "kubernetes"
       oidc-username-claim: "preferred_username"
       oidc-groups-claim: "groups"
@@ -217,7 +219,7 @@ talosctl kubeconfig "${KUBECONFIG}" -e 192.168.123.10 -n 192.168.123.10
 # Wait for kubernetes nodes appear
 timeout 60 sh -c 'until [ $(kubectl get node -o name | wc -l) = 3 ]; do sleep 1; done'
 kubectl create ns cozy-system -o yaml | kubectl apply -f -
-kubectl create -f - <<\EOT
+kubectl create -f - <<EOT
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -229,7 +231,7 @@ data:
   ipv4-pod-gateway: "10.244.0.1"
   ipv4-svc-cidr: "10.96.0.0/16"
   ipv4-join-cidr: "100.64.0.0/16"
-  root-host: example.org
+  root-host: ${ROOT_DOMAIN}
   api-server-endpoint: https://192.168.123.10:6443
 EOT
 
@@ -319,7 +321,7 @@ fi
 kubectl wait --for=condition=Available apiservices v1alpha1.apps.cozystack.io --timeout=2m
 
 kubectl patch -n tenant-root tenants.apps.cozystack.io root --type=merge -p '{"spec":{
-  "host": "example.org",
+  "host": "'"${ROOT_DOMAIN}"'",
   "ingress": true,
   "monitoring": true,
   "etcd": true,
@@ -367,7 +369,7 @@ kubectl wait --timeout=5m --for=condition=available -n tenant-root deploy grafan
 ip=$(kubectl get svc -n tenant-root root-ingress-controller -o jsonpath='{.status.loadBalancer.ingress..ip}')
 
 # Check Grafana
-curl -sS -k "https://$ip" -H 'Host: grafana.example.org' | grep Found
+curl -sS -k "https://$ip" -H "Host: grafana.${ROOT_DOMAIN}" | grep Found
 
 
 # Test OIDC

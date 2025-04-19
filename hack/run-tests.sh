@@ -14,9 +14,8 @@ command -V qemu-system-x86_64
 
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-COZYSTACK_INSTALLER_YAML=$(helm template -n cozy-system installer ./cozystack/packages/core/installer)
+COZYSTACK_INSTALLER_YAML=$(helm template -n cozy-system installer ../packages/core/installer)
 export COZYSTACK_INSTALLER_YAML
-#echo "${COZYSTACK_INSTALLER_YAML}"
 
 set +e
 
